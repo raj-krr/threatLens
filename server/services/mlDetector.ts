@@ -24,7 +24,7 @@ export function analyzeWithML(ipStats: MLInput): Promise<MLResult> {
       login_attempts:            ipStats.loginAttempts,
       error_rate:                ipStats.errorRate,
     });
-const scriptPath = path.join(process.cwd(), "..", "ml_detector", "predict.py");
+const scriptPath = path.join(__dirname, "../../ml_detector/predict.py");
 
     const python = spawn("python", [scriptPath, input]);
     let result = "";

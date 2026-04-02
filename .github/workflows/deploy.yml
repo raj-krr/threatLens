@@ -1,0 +1,62 @@
+name: Deploy ThreatLens to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install backend deps
+        run: |
+          cd server
+          npm install
+
+      - name: 🏗️ Build TypeScript
+        run: |
+          cd server
+          npm run build
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
+
+      - name: 📦 Install ML dependencies
+        run: |
+          pip install numpy pandas scikit-learn
+
+      - name: 🚀 Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/threatLens
+
+            echo "📥 Pulling latest code..."
+            git pull origin main
+
+            echo "📦 Installing backend dependencies..."
+            cd server
+            npm install
+
+            echo "🏗️ Building project..."
+            npm run build
+
+            echo "🔁 Restarting server..."
+            pm2 restart threatlens || pm2 start dist/index.js --name threatlens
+
+            echo "✅ Deployment complete!"
