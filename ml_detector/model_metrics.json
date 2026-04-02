@@ -1,0 +1,15 @@
+{
+  "model": "IsolationForest",
+  "contamination": 0.4654,
+  "trained_on": 53921,
+  "precision": 0.7837,
+  "recall": 0.6275,
+  "f1_score": 0.6969,
+  "features": [
+    "requests_per_min",
+    "unique_endpoints",
+    "avg_time_between_requests",
+    "login_attempts",
+    "error_rate"
+  ]
+}
