@@ -16,7 +16,7 @@ function threatLens(config: ThreatLensConfig) {
   if (!config.apiKey)    throw new Error("ThreatLens: apiKey is required");
   if (!config.projectId) throw new Error("ThreatLens: projectId is required");
 
-  const SERVER_URL = config.serverUrl ?? "http://localhost:5000";
+const SERVER_URL = config.serverUrl ?? "https://portfolioraj.in";
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
