@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist",
+    "module": "commonjs",
+    "target": "es2020",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "declaration": true
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules", "dist"]
+}

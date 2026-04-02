@@ -1,0 +1,25 @@
+{
+  "name": "threatlens-sdk",
+  "version": "1.0.0",
+  "description": "Real-time threat detection middleware for Express apps",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "tsc"
+  },
+  "keywords": ["security", "middleware", "threat-detection", "express"],
+  "author": "ThreatLens",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.14.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2"
+  },
+  "peerDependencies": {
+    "express": ">=4.0.0"
+  }
+}
