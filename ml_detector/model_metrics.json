@@ -1,5 +1,6 @@
 {
   "model": "IsolationForest",
+  "dataset": "KDD Cup 1999 (fixed column mapping)",
   "contamination": 0.4654,
   "trained_on": 53921,
   "precision": 0.7837,
