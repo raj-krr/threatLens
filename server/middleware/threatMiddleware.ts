@@ -11,19 +11,16 @@ export default (io: Server) =>
     const projectId = (req.headers["x-project-id"] as string) ?? "demo";
 
     try {
-      // Check if IP is already blocked
       const isBlocked = await BlockedIP.findOne({ ip, projectId });
       if (isBlocked) {
         res.status(403).json({ error: "IP Blocked by ThreatLens" });
         return;
       }
 
-      // Get recent history for this IP
       const history = await RequestModel.find({ ip, projectId })
         .sort({ timestamp: -1 })
         .limit(100);
 
-      // Rule based scoring
       const ruleResult = calculate(ip, {
         body:      JSON.stringify(req.body),
         url:       req.url,
@@ -31,7 +28,6 @@ export default (io: Server) =>
         userAgent: req.headers["user-agent"] ?? "",
       }, history as IRequest[]);
 
-      // Build ML input
       const now = Date.now();
       const uniqueEndpoints = [...new Set(history.map(r => r.endpoint))].length;
       const times = history
@@ -45,7 +41,6 @@ export default (io: Server) =>
         : 3000;
       const errors = history.filter(r => r.status === "blocked").length;
 
-      // ML scoring
       const mlResult = await analyzeWithML({
         requestsPerMin:  history.filter(r =>
           new Date(r.timestamp).getTime() > now - 60000).length,
@@ -55,16 +50,21 @@ export default (io: Server) =>
         errorRate:       history.length ? errors / history.length : 0,
       });
 
-      // Combine rule + ML scores
       let finalScore = ruleResult.score;
-      if (mlResult.is_anomaly) finalScore = Math.min(finalScore + 30, 100);
+      if (mlResult.is_anomaly) {
+        const mlBoost = Math.round((mlResult.confidence / 100) * 30);
+        finalScore = Math.min(finalScore + mlBoost, 100);
+      }
 
       const finalStatus: "allowed" | "flagged" | "blocked" =
         finalScore > 60 ? "blocked" :
         finalScore > 30 ? "flagged" :
         "allowed";
 
-      // Save to MongoDB
+      const finalAttackType = ruleResult.attackType !== "normal"
+        ? ruleResult.attackType
+        : mlResult.attack_type || "normal";
+
       await RequestModel.create({
         projectId,
         ip,
@@ -74,33 +74,30 @@ export default (io: Server) =>
         body:        JSON.stringify(req.body).substring(0, 500),
         threatScore: finalScore,
         status:      finalStatus,
-        attackType:  ruleResult.attackType,
+        attackType:  finalAttackType,   
         timestamp:   new Date(),
       });
 
-      // Auto block if score is critical
       if (finalScore > 80) {
         await BlockedIP.create({
           projectId,
           ip,
-          reason:    ruleResult.attackType,
+          reason:    finalAttackType,   
           blockedAt: new Date(),
-          expiresAt: new Date(Date.now() + 3600000), // 1 hour
+          expiresAt: new Date(Date.now() + 3600000),
         });
       }
 
-      // Emit to dashboard in real time
       io.to(projectId).emit("new_request", {
         ip,
         endpoint:   req.path,
         score:      finalScore,
         status:     finalStatus,
-        attackType: ruleResult.attackType,
+        attackType: finalAttackType,    
         mlAnomaly:  mlResult.is_anomaly,
         timestamp:  new Date(),
       });
 
-      // Block the request if needed
       if (finalStatus === "blocked") {
         res.status(403).json({
           error:   "Access Denied",
@@ -113,6 +110,6 @@ export default (io: Server) =>
 
     } catch (err) {
       console.error("ThreatLens middleware error:", err);
-      next(); // never break the app
+      next();
     }
   };

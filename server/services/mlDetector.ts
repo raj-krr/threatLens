@@ -13,6 +13,7 @@ interface MLResult {
   is_anomaly: boolean;
   confidence: number;
   label: string;
+  attack_type: string;
 }
 
 export function analyzeWithML(ipStats: MLInput): Promise<MLResult> {
@@ -26,7 +27,7 @@ export function analyzeWithML(ipStats: MLInput): Promise<MLResult> {
     });
 const scriptPath = path.join(__dirname, "../../ml_detector/predict.py");
 
-    const python = spawn("python", [scriptPath, input]);
+    const python = spawn("python3", [scriptPath, input]);
     let result = "";
 
     python.stdout.on("data", (data: Buffer) => {
@@ -42,7 +43,7 @@ const scriptPath = path.join(__dirname, "../../ml_detector/predict.py");
         resolve(JSON.parse(result));
       } catch {
         // fail safe — never crash the app
-        resolve({ is_anomaly: false, confidence: 0, label: "NORMAL" });
+        resolve({ is_anomaly: false, confidence: 0, label: "NORMAL", attack_type:"normal" });
       }
     });
   });
