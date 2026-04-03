@@ -8,7 +8,12 @@
     "build": "tsc",
     "prepublish": "tsc"
   },
-  "keywords": ["security", "middleware", "threat-detection", "express"],
+  "keywords": [
+    "security",
+    "middleware",
+    "threat-detection",
+    "express"
+  ],
   "author": "ThreatLens",
   "license": "ISC",
   "dependencies": {
