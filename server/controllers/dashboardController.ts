@@ -77,3 +77,15 @@ export const unblockIP = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: "Failed to unblock IP" });
   }
 };
+
+export const mlMetrics = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const fs = await import("fs");
+    const path = await import("path");
+    const metricsPath = path.join(process.cwd(), "..", "ml_detector", "model_metrics.json");
+    const metrics = JSON.parse(fs.readFileSync(metricsPath, "utf-8"));
+    res.json(metrics);
+  } catch (err) {
+    res.status(500).json({ error: "Metrics not found" });
+  }
+};
